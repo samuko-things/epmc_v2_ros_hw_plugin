@@ -1,0 +1,9 @@
+<library path="epmc_v2_ros_hw_plugin">
+  <class name="epmc_v2_ros_hw_plugin/EPMC_V2_HardwareInterface"
+         type="epmc_v2_ros_hw_plugin::EPMC_V2_HardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      The ros2 hardware interface plugin package for the Easy PID Motor Controller Version 2
+    </description>
+  </class>
+</library>
