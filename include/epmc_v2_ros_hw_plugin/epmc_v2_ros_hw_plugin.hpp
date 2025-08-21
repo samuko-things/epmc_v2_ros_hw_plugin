@@ -43,6 +43,8 @@ namespace epmc_v2_ros_hw_plugin
     {
       std::string motor0_wheel_name = "";
       std::string motor1_wheel_name = "";
+      std::string motor2_wheel_name = "";
+      std::string motor3_wheel_name = "";
       std::string port = "";
       std::string cmd_vel_timeout_ms = "";
     };
@@ -73,6 +75,8 @@ namespace epmc_v2_ros_hw_plugin
     Config cfg_;        // configuration
     Motor motor0_;      // motor0 setup
     Motor motor1_;      // motor1 setup
+    Motor motor2_;      // motor2 setup
+    Motor motor3_;      // motor3 setup
   };
 
 } // namespace epmc_v2_ros_hw_plugin
