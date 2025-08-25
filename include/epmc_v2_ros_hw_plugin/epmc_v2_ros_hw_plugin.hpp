@@ -33,6 +33,7 @@
 
 #include "epmc_v2_ros_hw_plugin/epmc_v2.hpp"
 #include "epmc_v2_ros_hw_plugin/motor.hpp"
+#include "epmc_v2_ros_hw_plugin/imu.hpp"
 
 namespace epmc_v2_ros_hw_plugin
 {
@@ -47,6 +48,7 @@ namespace epmc_v2_ros_hw_plugin
       std::string motor3_wheel_name = "";
       std::string port = "";
       std::string cmd_vel_timeout_ms = "";
+      std::string imu_sensor_name = "";
     };
 
   public:
@@ -72,11 +74,12 @@ namespace epmc_v2_ros_hw_plugin
 
   private:
     EPMC_V2 epmcV2_; // serial communication
-    Config cfg_;        // configuration
+    Config config_;        // configuration
     Motor motor0_;      // motor0 setup
     Motor motor1_;      // motor1 setup
     Motor motor2_;      // motor2 setup
     Motor motor3_;      // motor3 setup
+    IMU imu_;
   };
 
 } // namespace epmc_v2_ros_hw_plugin

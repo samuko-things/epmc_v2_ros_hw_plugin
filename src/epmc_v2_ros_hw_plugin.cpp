@@ -32,24 +32,24 @@ namespace epmc_v2_ros_hw_plugin
 {
   hardware_interface::CallbackReturn EPMC_V2_HardwareInterface::on_init(const hardware_interface::HardwareInfo &info)
   {
-    if (
-        hardware_interface::SystemInterface::on_init(info) !=
-        hardware_interface::CallbackReturn::SUCCESS)
+    if ( hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS )
     {
       return hardware_interface::CallbackReturn::ERROR;
     }
 
-    cfg_.motor0_wheel_name = info_.hardware_parameters["motor0_wheel_name"];
-    cfg_.motor1_wheel_name = info_.hardware_parameters["motor1_wheel_name"];
-    cfg_.motor2_wheel_name = info_.hardware_parameters["motor2_wheel_name"];
-    cfg_.motor3_wheel_name = info_.hardware_parameters["motor3_wheel_name"];
-    cfg_.port = info_.hardware_parameters["port"];
-    cfg_.cmd_vel_timeout_ms = info_.hardware_parameters["cmd_vel_timeout_ms"];
+    config_.motor0_wheel_name = info_.hardware_parameters["motor0_wheel_name"];
+    config_.motor1_wheel_name = info_.hardware_parameters["motor1_wheel_name"];
+    config_.motor2_wheel_name = info_.hardware_parameters["motor2_wheel_name"];
+    config_.motor3_wheel_name = info_.hardware_parameters["motor3_wheel_name"];
+    config_.port = info_.hardware_parameters["port"];
+    config_.cmd_vel_timeout_ms = info_.hardware_parameters["cmd_vel_timeout_ms"];
+    config_.imu_sensor_name = info_.hardware_parameters["imu_sensor_name"];
 
-    motor0_.setup(cfg_.motor0_wheel_name);
-    motor1_.setup(cfg_.motor1_wheel_name);
-    motor2_.setup(cfg_.motor2_wheel_name);
-    motor3_.setup(cfg_.motor3_wheel_name);
+    motor0_.setup(config_.motor0_wheel_name);
+    motor1_.setup(config_.motor1_wheel_name);
+    motor2_.setup(config_.motor2_wheel_name);
+    motor3_.setup(config_.motor3_wheel_name);
+    imu_.setup(config_.imu_sensor_name);
 
     for (const hardware_interface::ComponentInfo &joint : info_.joints)
     {
@@ -119,6 +119,35 @@ namespace epmc_v2_ros_hw_plugin
     state_interfaces.emplace_back(hardware_interface::StateInterface(motor3_.name, hardware_interface::HW_IF_POSITION, &motor3_.angPos));
     state_interfaces.emplace_back(hardware_interface::StateInterface(motor3_.name, hardware_interface::HW_IF_VELOCITY, &motor3_.angVel));
 
+    // Add IMU state interfaces
+    state_interfaces.emplace_back(imu_.name, "orientation.x", &imu_.qx);
+    state_interfaces.emplace_back(imu_.name, "orientation.y", &imu_.qy);
+    state_interfaces.emplace_back(imu_.name, "orientation.z", &imu_.qz);
+    state_interfaces.emplace_back(imu_.name, "orientation.w", &imu_.qw);
+
+    // for (size_t i = 0; i < 9; i++)
+    // {
+    //   state_interfaces.emplace_back("imu_sensor", "orientation_covariance_" + std::to_string(i), &imu_orientation_covariance_[i]);
+    // }
+
+    state_interfaces.emplace_back(imu_.name, "angular_velocity.x", &imu_.gx);
+    state_interfaces.emplace_back(imu_.name, "angular_velocity.y", &imu_.gy);
+    state_interfaces.emplace_back(imu_.name, "angular_velocity.z", &imu_.gz);
+
+    // for (size_t i = 0; i < 9; i++)
+    // {
+    //   state_interfaces.emplace_back("imu_sensor", "angular_velocity_covariance_" + std::to_string(i), &imu_angular_velocity_covariance_[i]);
+    // }
+
+    state_interfaces.emplace_back(imu_.name, "linear_acceleration.x", &imu_.ax);
+    state_interfaces.emplace_back(imu_.name, "linear_acceleration.y", &imu_.ay);
+    state_interfaces.emplace_back(imu_.name, "linear_acceleration.z", &imu_.az);
+
+    // for (size_t i = 0; i < 9; i++)
+    // {
+    //   state_interfaces.emplace_back("imu_sensor", "linear_acceleration_covariance_" + std::to_string(i), &imu_linear_acceleration_covariance_[i]);
+    // }
+
     return state_interfaces;
   }
 
@@ -144,7 +173,7 @@ namespace epmc_v2_ros_hw_plugin
     {
       epmcV2_.disconnect();
     }
-    epmcV2_.connect(cfg_.port);
+    epmcV2_.connect(config_.port);
     // for (int i = 1; i <= 2; i += 1)
     // { // wait to fully setup
       
@@ -157,7 +186,7 @@ namespace epmc_v2_ros_hw_plugin
     epmcV2_.writeSpeed(2, 0.00);
     epmcV2_.writeSpeed(3, 0.00);
 
-    int cmd_timeout = std::stoi(cfg_.cmd_vel_timeout_ms.c_str());
+    int cmd_timeout = std::stoi(config_.cmd_vel_timeout_ms.c_str());
     epmcV2_.setCmdTimeout(cmd_timeout); // set motor command timeout
     epmcV2_.getCmdTimeout(cmd_timeout);
     RCLCPP_INFO(rclcpp::get_logger("EPMC_V2_HardwareInterface"), "motor_cmd_timeout_ms: %d ms", (cmd_timeout));
@@ -223,6 +252,9 @@ namespace epmc_v2_ros_hw_plugin
     {
       float motor0_angPos, motor1_angPos, motor2_angPos, motor3_angPos;
       float motor0_angVel, motor1_angVel, motor2_angVel, motor3_angVel;
+      float qw, qx, qy, qz;
+      float ax, ay, az;
+      float gx, gy, gz;
 
       epmcV2_.readPos(0, motor0_angPos);
       epmcV2_.readVel(0, motor0_angVel);
@@ -236,6 +268,10 @@ namespace epmc_v2_ros_hw_plugin
       epmcV2_.readPos(3, motor3_angPos);
       epmcV2_.readVel(3, motor3_angVel);
 
+      epmcV2_.readQuat(qw, qx, qy, qz);
+      epmcV2_.readAcc(ax, ay, az);
+      epmcV2_.readGyro(gx, gy, gz);
+
       motor0_.angPos = (double)motor0_angPos;
       motor1_.angPos = (double)motor1_angPos;
       motor2_.angPos = (double)motor2_angPos;
@@ -245,6 +281,19 @@ namespace epmc_v2_ros_hw_plugin
       motor1_.angVel = (double)motor1_angVel;
       motor2_.angVel = (double)motor2_angVel;
       motor3_.angVel = (double)motor3_angVel;
+
+      imu_.qw = qw;
+      imu_.qx = qx;
+      imu_.qy = qy;
+      imu_.qz = qz;
+
+      imu_.ax = ax;
+      imu_.ay = ay;
+      imu_.az = az;
+
+      imu_.gx = gx;
+      imu_.gy = gy;
+      imu_.gz = gz;
     }
     catch (...)
     {
