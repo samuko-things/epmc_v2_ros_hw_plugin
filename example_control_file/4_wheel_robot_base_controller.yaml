@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 20  # Hz
+    update_rate: 50  # Hz
     use_sim_time: false
 
     joint_state_broadcaster:
@@ -22,13 +22,13 @@ imu_broadcaster:
                                     0.0, 0.0, 0.0,
                                     0.0, 0.0, 0.0]
 
-    static_covariance_angular_velocity: [0.001, 0.0, 0.0,
-                                          0.0, 0.001, 0.0,
-                                          0.0, 0.0, 0.001]
+    static_covariance_angular_velocity: [1e-5, 0.0, 0.0,
+                                          0.0, 1e-5, 0.0,
+                                          0.0, 0.0, 1e-5]
 
-    static_covariance_linear_acceleration: [0.01, 0.0, 0.0,
-                                            0.0, 0.01, 0.0,
-                                            0.0, 0.0, 0.01]
+    static_covariance_linear_acceleration: [0.001, 0.0, 0.0,
+                                            0.0, 0.001, 0.0,
+                                            0.0, 0.0, 0.001]
 
 diff_drive_controller:
   ros__parameters:
