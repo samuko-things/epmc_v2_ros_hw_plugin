@@ -10,7 +10,7 @@ class IMU
     public:
 
     std::string name = "";
-    double qw = 0.0;
+    double qw = 1.0;
     double qx = 0.0;
     double qy = 0.0;
     double qz = 0.0;
@@ -22,6 +22,8 @@ class IMU
     double gx = 0.0;
     double gy = 0.0;
     double gz = 0.0;
+
+    int use_imu = 0;
 
     IMU() = default;
 
